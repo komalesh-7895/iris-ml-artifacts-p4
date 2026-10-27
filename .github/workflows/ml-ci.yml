@@ -1,0 +1,42 @@
+name: Iris ML Artifacts
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  ml-quality-check:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Train Iris model
+        run: python train_model.py
+
+      - name: Check model quality
+        run: python quality_gate.py
+
+      - name: Run ML pipeline tests
+        run: python -m pytest test_ml_pipeline.py
+
+      - name: Upload ML artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: iris-ml-artifacts
+          path: |
+            iris_model.pkl
+            metrics.json
+            iris_data.csv
+          if-no-files-found: error
+          retention-days: 7
